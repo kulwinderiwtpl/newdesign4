@@ -1,0 +1,18 @@
+# Prevent httpoxy vulnerability
+<IfModule mod_headers.c>
+    RequestHeader unset Proxy
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Force HTTPS
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Redirect all requests to webroot
+    RewriteCond %{REQUEST_URI} !^/webroot/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ webroot/$1 [L]
+</IfModule>

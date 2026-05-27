@@ -1,0 +1,133 @@
+<?php
+
+/* 
+ * Emailer Class used to send All Emails
+ */
+namespace App\Mailer;
+
+use Cake\Mailer\Mailer;
+use Cake\Mailer\Email;
+
+class MyMailer extends Mailer
+{
+    private $from = 'no-reply@healthclaimsforum.net';
+//     public function welcome($user)
+//     {
+//         //pr($user);
+// //        pr($user->first_name);
+//         $this
+//             ->setTo($user->email)
+//             ->setSubject(sprintf('Welcome %s', $user->first_name))
+//             ->setTemplate('welcome') // By default template with same name as method name is used.
+//             ->setEmailFormat('html')
+//             ->setLayout('default')
+//             ->setFrom($this->from)
+//             ->set('user',$user);
+//     }
+
+    public function resetPassword($user)
+    {
+//        pr($user);
+        // $email = new Email('default');
+        // $email->from($this->from)
+        //     ->to($user->email)
+        //     ->subject('Reset Password Confirmation Email')
+        //     ->send('My message');
+        $this
+            ->setTo($user->email)
+            ->setSubject(sprintf('Reset Password Confirmation Email', $user->first_name))
+            ->setTemplate(false)
+            ->setMessage('cfds fsd fdsfds fds ') // By default template with same name as method name is used.
+            ->setEmailFormat('html')
+            // ->setLayout('default')
+            ->setFrom($this->from);
+            // ->set('user',$user);
+//        $this
+//            ->setTo($user->email)
+//            ->setSubject('Reset password')
+//            ->set(['token' => $user->token]);
+    }
+
+//     public function rsvp_submitted($data)
+//     {
+// //        pr($user->first_name);
+//         $this
+//             ->setTo($data['email'])
+//             ->setSubject(sprintf('Health Claims Forum application'))
+//             ->setTemplate('rsvp_submitted') // By default template with same name as method name is used.
+//             ->setEmailFormat('html')
+//             ->setLayout('default')
+//             ->setFrom($this->from)
+//             ->set('data',$data);
+//     }
+
+//     public function rsvp_colleague($data)
+//     {
+// //        pr($user->first_name);
+//         $this
+//             ->setTo($data['email'])
+//             ->setSubject(sprintf('Health Claims Forum application'))
+//             ->setTemplate('rsvp_colleague') // By default template with same name as method name is used.
+//             ->setEmailFormat('html')
+//             ->setLayout('default')
+//             ->setFrom($this->from)
+//             ->set('data',$data);
+//     }
+
+//     public function blank($user)
+//     {
+// //        pr($user);
+//         $this
+//             ->setTo($user->email)
+//             ->setSubject(__($user->subject))
+//             ->setTemplate('blank') // By default template with same name as method name is used.
+//             ->setEmailFormat('html')
+//             ->setLayout('default')
+//             ->setFrom($this->from)
+//             ->set('user',$user);
+// //        $this
+// //            ->setTo($user->email)
+// //            ->setSubject('Reset password')
+// //            ->set(['token' => $user->token]);
+//     }
+
+//     public function sendInfo($user)
+//     {
+// //        pr($user);
+//         $this
+//             ->setTo($user->email)
+//             ->setSubject(__('Your account is Activated. You can now login.'))
+//             ->setTemplate('send_info') // By default template with same name as method name is used.
+//             ->setEmailFormat('html')
+//             ->setLayout('default')
+//             ->setFrom($this->from)
+//             ->set('user',$user);
+// //        $this
+// //            ->setTo($user->email)
+// //            ->setSubject('Reset password')
+// //            ->set(['token' => $user->token]);
+//     }
+
+//     public function bulkEmail($mailData)
+//     {
+//         // pr($mailData);
+//         // die;
+//         $this
+//             ->setTo($mailData->email)
+//             // ->setTo('peter@msoft-technologies.com')
+//             ->setSubject(__($mailData->subject))
+//             ->setTemplate('bulkEmail') // By default template with same name as method name is used.
+//             ->setEmailFormat('html')
+//             ->setLayout('default')
+//             ->setFrom($mailData->from_email)
+//             ->set('mailData',$mailData);
+//         if(isset($mailData->cc)){
+//             $this->setCc($mailData->cc);
+//         }
+// //        $this
+// //            ->setTo($user->email)
+// //            ->setSubject('Reset password')
+// //            ->set(['token' => $user->token]);
+//     }
+    
+}

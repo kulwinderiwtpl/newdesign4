@@ -1,0 +1,326 @@
+<?php
+namespace App\Controller;
+
+use App\Controller\AppController;
+
+/**
+ * Documents Controller
+ *
+ * @property \App\Model\Table\DocumentsTable $Documents
+ */
+class DocumentsController extends AppController
+{
+
+    /**
+     * Index method
+     *
+     * @return \Cake\Network\Response|null
+     */
+    public function index()
+    {
+        
+        
+        $this->set('title', 'Manage Claims Diplomas and Useful Information');
+        $document = $this->Documents->newEntity();
+        if ($this->request->is('post')) {
+            //pr($this->request->data);die;
+            if($this->request->data['file']['error']==0 && !empty($this->request->data['file']['tmp_name'])){
+                //pr($this->request->data['avatar']);die;
+                $filename = date('d-m-Y').'_'.$this->request->data['file']['name'];
+                $file_path = WWW_ROOT.'uploads'.DS.'documents'.DS;
+                if(file_exists($file_path.$filename)){
+                    $filename = date('d-m-Y').time().'_'.$this->request->data['file']['name'];
+                }
+                move_uploaded_file($this->request->data['file']['tmp_name'], $file_path.$filename);
+                $this->request->data['file'] = $filename;
+            } else {
+                unset($this->request->data['file']);
+            }
+            $this->request->data['date_sent']=date('Y-m-d');
+            $document = $this->Documents->patchEntity($document, $this->request->data);
+            if ($this->Documents->save($document)) {
+                $this->Flash->success(__('The document has been saved.'));
+
+                return $this->redirect(['action' => 'index']);
+            }
+            // pr($document);die;
+            $this->Flash->error(__('The document could not be saved. Please, try again.'));
+        }
+
+        // public $paginate = [
+        //     'Documents' => ['scope' => 'article'],
+        //     'Documents' => ['scope' => 'tag']
+        // ];
+
+        $useful_information = $this->Documents->find()
+            ->where([
+                'doc_type' => 'Useful Infomation',
+                'status NOT IN' => ['AR','D','I']
+            ])
+            ->order(['date_sent' => 'asc'])
+            ->all();
+
+//         $this->paginate = [
+// //            'sortWhitelist' => [
+// //                'Banners.name', 'Banners.is_active', 'Banners.modified'
+// //            ],
+//             'conditions' => [
+//                 'doc_type' => 'Useful Infomation',
+//                 'status <>' => 'AR'
+//             ],
+//             'order' => [
+//                 'date_sent' => 'asc'
+//             ]
+//         ];
+//         $useful_information = $this->paginate($this->Documents);
+
+
+            $claims_diploma = $this->Documents->find()
+            ->where([
+                'doc_type' => 'AGM and Constitution',
+                'status NOT IN' => ['AR','D']
+            ])
+            ->order(['date_sent' => 'asc'])
+            ->all();
+//         $this->paginate = [
+// //            'sortWhitelist' => [
+// //                'Banners.name', 'Banners.is_active', 'Banners.modified'
+// //            ],
+//             'conditions' => [
+//                 'doc_type' => 'Claims Diploma',
+//                 'status <>' => 'AR'
+//             ],
+//             'order' => [
+//                 'date_sent' => 'asc'
+//             ]
+//         ];
+//         $claims_diploma = $this->paginate($this->Documents);
+
+//         $this->paginate = [
+// //            'sortWhitelist' => [
+// //                'Banners.name', 'Banners.is_active', 'Banners.modified'
+// //            ],
+//             'conditions' => [
+//                 'status' => 'AR'
+//             ],
+//             'order' => [
+//                 'date_sent' => 'asc'
+//             ]
+//         ];
+//         $archived = $this->paginate($this->Documents);
+
+        //$documents = $this->paginate($this->Documents);
+
+        $archived = $this->Documents->find()
+            ->where([
+                'status' => 'AR',
+                'status <>' => 'D'
+            ])
+            ->order(['date_sent' => 'asc'])
+            ->all();
+
+        $this->set(compact('document','useful_information','claims_diploma','archived'));
+        $this->set('_serialize', ['document','useful_information','claims_diploma','archived']);
+    }
+
+    public function bulkAction(){
+        $this->autoRender = false;
+        if ($this->request->is('post')) {
+            // pr($this->request->data);die;
+            $refer_url = $this->referer('/', true);
+            // die;
+            $action = $this->request->data['group_action'];
+            $selected_items = $this->request->data['selected_items'];
+            $tab = $this->request->data['tab'];
+            // $users = TableRegistry::get('Users');
+            $query = $this->Documents->query();
+            // $query = $users->query();
+            if($action=='D' || $action=='A' || $action=='I' || $action=='AR'){
+                $query->update()
+                ->set(['status' => $action])
+                ->where(['dId IN' => $selected_items])
+                ->execute();
+                $this->Flash->success('<i class="fa fa-thumbs-o-up"></i> Bulk Action Executed Successfully!');
+            } else {
+                $this->Flash->error('<i class="fa fa-thumbs-o-down"></i> An error Occured. Try again Later!');
+            }
+            return $this->redirect(['action'=>'index',"?" => ["tab" => $tab]]);
+        }
+    }
+
+    /**
+     * View method
+     *
+     * @param string|null $id Document id.
+     * @return \Cake\Network\Response|null
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function view($id = null)
+    {
+        $document = $this->Documents->get($id, [
+            'contain' => []
+        ]);
+
+        $this->set('document', $document);
+        $this->set('_serialize', ['document']);
+    }
+
+    /**
+     * Add method
+     *
+     * @return \Cake\Network\Response|null Redirects on successful add, renders view otherwise.
+     */
+    // public function add()
+    // {
+    //     $document = $this->Documents->newEntity();
+    //     if ($this->request->is('post')) {
+    //         $document = $this->Documents->patchEntity($document, $this->request->data);
+    //         if ($this->Documents->save($document)) {
+    //             $this->Flash->success(__('The document has been saved.'));
+
+    //             return $this->redirect(['action' => 'index']);
+    //         }
+    //         $this->Flash->error(__('The document could not be saved. Please, try again.'));
+    //     }
+    //     $this->set(compact('document'));
+    //     $this->set('_serialize', ['document']);
+    // }
+
+    /**
+     * Edit method
+     *
+     * @param string|null $id Document id.
+     * @return \Cake\Network\Response|null Redirects on successful edit, renders view otherwise.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function edit($id = null)
+    {
+        $document = $this->Documents->get($id, [
+            'contain' => []
+        ]);
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            //  pr($this->request->data);
+             if($this->request->data['file']['error']==0 && !empty($this->request->data['file']['tmp_name'])){
+                //pr($this->request->data['avatar']);die;
+                $filename = date('d-m-Y').'_'.$this->request->data['file']['name'];
+                $file_path = WWW_ROOT.'uploads'.DS.'documents'.DS;
+                if(file_exists($file_path.$filename)){
+                    $filename = date('d-m-Y').time().'_'.$this->request->data['file']['name'];
+                }
+                move_uploaded_file($this->request->data['file']['tmp_name'], $file_path.$filename);
+                $this->request->data['file'] = $filename;
+            } else {
+                unset($this->request->data['file']);
+            }
+
+            // die;
+            $document = $this->Documents->patchEntity($document, $this->request->data);
+            if ($this->Documents->save($document)) {
+                // pr($document);die;
+                $this->Flash->success(__('The document has been saved.'));
+
+                return $this->redirect(['action' => 'edit/'.$id]);
+            }
+            // pr($document);die;
+            $this->Flash->error(__('The document could not be saved. Please, try again.'));
+        }
+        $this->set(compact('document'));
+        $this->set('_serialize', ['document']);
+    }
+
+    /**
+     * Delete method
+     *
+     * @param string|null $id Document id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function delete($id = null)
+    {
+        $this->autoRender = false;
+        $this->request->allowMethod(['post', 'delete']);
+        $ad = $this->Documents->get($id);
+       
+        if ($this->Documents->delete($ad)) {
+            // $this->Flash->success(__('The ad has been deleted.'));
+            echo json_encode(['status'=>true,'message'=>'The document been deleted.']);
+        } else { 
+            // $this->Flash->error(__('The ad could not be deleted. Please, try again.'));
+            echo json_encode(['status'=>false,'message'=>'An error Occured. Try again latter!']);
+        }
+    }
+    
+    public function agmAndConstitution()
+    {
+        
+        
+        $this->set('title', 'Claims Diploma');
+        $this->paginate = [
+//            'sortWhitelist' => [
+//                'Banners.name', 'Banners.is_active', 'Banners.modified'
+//            ],
+            'conditions' => [
+                // old condition comment by work innovate (ivan)
+                // 'doc_type' => 'Claims Diploma',
+                'doc_type' => 'AGM and Constitution',
+            ],
+            'order' => [
+                'date_sent' => 'desc'
+            ],
+             'limit' => 10,
+        ];
+        $documents = $this->paginate($this->Documents);
+
+        $archived = $this->Documents->find()
+        ->where([
+            'doc_type' => 'AGM and Constitution',
+            'status' => 'AR'
+        ])
+        ->order(['date_sent' => 'asc'])
+        ->all();
+
+            $userID = $this->request->session()->read('Auth.User.id');
+        
+        $user = $this->Users->get($userID, [
+        'contain' => []
+        ]);
+        $userRole = $user['type'];
+        
+        $this->set(compact('documents','archived','userRole'));
+        $this->set('_serializae', ['documents','archived']);
+    }
+    
+    public function usefulInformation()
+    {
+        $this->set('title', 'Useful Information');
+    
+        $documents = $this->Documents->find()
+            ->where([
+                'doc_type' => 'Useful Infomation',
+                'status NOT IN' => ['AR','D','I']
+            ])
+            ->order(['date_sent' => 'asc'])
+            ->all();
+
+        $this->set('title', 'Useful Information');
+ 
+        $archived = $this->Documents->find()
+            ->where([
+                'doc_type' => 'Useful Infomation',
+                'status' => 'AR'
+            ])
+            ->order(['date_sent' => 'asc'])
+            ->all();
+
+//        $this->set(compact('documents'));
+//        $this->set(compact('archived'));
+//        $this->set('_serialize', ['documents','archived']);
+        
+        $this->set('documents', $documents);
+        $this->set('_serialize', ['documents']);
+
+        $this->set('archived', $archived);
+        $this->set('_serialize', ['archived']);
+        
+    }
+}

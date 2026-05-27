@@ -1,0 +1,766 @@
+<?php
+
+namespace App\Controller;
+
+use App\Controller\AppController;
+use App\Controller\AttendeesController;
+
+/**
+ * Attendees Controller
+ *
+ * @property \App\Model\Table\AttendeesTable $Attendees
+ */
+class AttendeesController extends AppController {
+
+    private function filterList($conditions) {
+        // $this->autoRender = false;
+
+        if (!empty($this->request->query('search'))) {
+            $q = $this->request->query('search');
+            $conditions = array_merge($conditions, [
+                'OR' => [
+                    'user_name LIKE' => $q . '%',
+                    'email LIKE' => $q . '%',
+                    'contactno LIKE' => $q . '%',
+                    'pay_method LIKE' => $q . '%',
+                    'status LIKE' => $q . '%',
+                // 'mem_type LIKE' => $q.'%'
+            ]]);
+        }
+
+        // $users = $this->Users->find('all',[
+        // 'contain' => ['Companies'],
+        // 'conditions' =>$conditions,
+        // // 'limit' => $this->queryPage
+        // ]);
+
+        $this->paginate = [
+            'conditions' => $conditions,
+            'limit' => $this->queryPage,
+            'order' => [
+                'name' => 'asc'
+            ]
+        ];
+        $companies = $this->paginate($this->Companies);
+        return $companies;
+    }
+
+    /**
+     * Index method
+     *
+     * @return \Cake\Network\Response|null
+     */
+    public function index() {
+        $this->set('title', 'Attendees');
+        $this->loadModel('Meetings');
+        $this->loadModel('Companies');
+        $latest_attendees = $history_meeting = [];
+        $latest_meeting = $this->Meetings->find('all', [
+                    'conditions' => [
+                        'Meetings.status <>' => 'D'
+                    ],
+                    'order' => [
+                        'Meetings.date' => 'desc'
+                    ]
+                ])->first();
+
+        $arrid = array();
+        $this->loadModel('InvoiceDetails');
+        $attendee_id = $this->InvoiceDetails->query();
+        $attendee_id->select('attendee_id')
+                ->where(['meeting_id' => $latest_meeting->id])
+                ->andwhere(['status <>' => 'D'])
+                ->execute();
+        foreach ($attendee_id as $aid) {
+            $arrid[] = $aid->attendee_id;
+        }
+        if (!empty($arrid)) {
+            $idss = implode(",", $arrid);
+        }else{
+            $idss="";
+        }
+        if($idss!==""){
+        $latest_attendees = $this->Attendees->find('all', [
+                    //'contain'=>['InvoiceDetails'],
+                    'join' => [
+                        'alias' => 'company',
+                        'table' => 'companies',
+                        'type' => 'LEFT',
+                        'conditions' => 'Attendees.company_id = `company`.`id`'
+                    ],
+                    'conditions' => [
+                        'Attendees.meeting_id' => $latest_meeting->id,
+                        'Attendees.astatus <>' => 'D',
+                        "`Attendees`.`id` in ($idss)",
+                    ],
+                    'order' => ['Attendees.last_name' => 'asc'],
+                    'group-by' => ['Attendees.id']
+                ])->select(['Attendees.user_name', 'Attendees.last_name', 'Attendees.date', 'Attendees.fee', 'Attendees.attended', 'Attendees.id', 'Attendees.additionals', 'Attendees.company_id', 'Attendees.companytext', 'Attendees.type', 'company.name'])->all();
+        }
+        //pr($latest_attendees);die;
+
+        foreach ($latest_attendees as $attendee) {
+            $company_mem_status[] = $this->Companies->find('all', [
+                'conditions' => [
+                    'id =' => $attendee->company_id
+                ],
+            ]);
+        }
+
+
+        $history_meetings = $this->Meetings->find('all', [
+                    'conditions' => [
+                        'Meetings.status <>' => 'D'
+                    ],
+                    'order' => [
+                        'Meetings.date' => 'desc'
+                    ]
+                ])->all();
+        // pr($history_meetings);die;
+        // if($id){
+        //     $history_meeting = $this->Meetings->find('all',[
+        //     'conditions' => [
+        //     'Meetings.date <' => date('Y-m-d'),
+        //     'Meetings.status <>' => 'D',
+        //     'Meetings.id' => $id
+        //     ],
+        //     'order' => [
+        //     'Meetings.date' => 'desc'
+        //     ]
+        //     ])->first();
+        // } 
+        // if(!$history_meeting){
+        //     $history_meeting = $history_meetings->first();
+        // }
+        // pr($history_meeting);die;
+        // $history_meetings = $history_meetings->all();
+        // pr($history_meetings);die;
+        $history_attendees = $this->Attendees->find('all', [
+            // 'contain' => ['Meetings'],
+            'conditions' => [
+                'Meetings.id <>' => isset($latest_meeting->id) ? $latest_meeting->id : 0
+            ],
+            'join' => [
+                'alias' => 'Meetings',
+                'table' => 'meetings',
+                'type' => 'LEFT',
+                'conditions' => '`Meetings`.`id` = `Attendees`.`meeting_id`'
+            ],
+            'order' => [
+                'Meetings.date' => 'desc'
+            ]
+        ]);
+        //$invoices = $this->paginate($this->Attendees);
+        // pr($history_meetings);die;
+		$count = $this->Attendees->find();
+		$invoice_payment_count = $this->loadModel('InvoiceDetails');
+		$payment_count = $invoice_payment_count->find();
+
+
+        $this->set(compact('invoices', 'latest_meeting', 'latest_attendees', 'history_meetings', 'history_meeting', 'history_attendees', 'company_mem_status','count','payment_count'));
+        $this->set('_serialize', ['invoices', 'latest_meeting', 'latest_attendees', 'history_meetings', 'history_meeting', 'history_attendees', 'company_mem_status','count','payment_count']);
+    }
+
+    // public function index()
+    // {
+    //     $this->paginate = [
+    //         'contain' => ['Users', 'Companies', 'Meetings']
+    //     ];
+    //     $attendees = $this->paginate($this->Attendees);
+    //     $this->set(compact('attendees'));
+    //     $this->set('_serialize', ['attendees']);
+    // }
+
+    /**
+     * View method
+     *
+     * @param string|null $id Attendee id.
+     * @return \Cake\Network\Response|null
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function view($id = null) {
+        $attendee = $this->Attendees->get($id, [
+            'contain' => ['Users', 'Companies', 'Meetings', 'InvoceDetails']
+        ]);
+
+        $this->set('attendee', $attendee);
+        $this->set('_serialize', ['attendee']);
+    }
+
+    /**
+     * Add method
+     *
+     * @return \Cake\Network\Response|null Redirects on successful add, renders view otherwise.
+     */
+    public function add() {
+        $attendee = $this->Attendees->newEntity();
+        if ($this->request->is('post')) {
+            // pr($this->request->data);
+            $this->loadModel('Meetings');
+            $latest_meeting = $this->Meetings->find('all', [
+                        'conditions' => [
+                            'Meetings.status <>' => 'D'
+                        ],
+                        'order' => [
+                            'Meetings.date' => 'desc'
+                        ]
+                    ])->first();
+            $this->request->data['meeting_id'] = $latest_meeting->id;
+            $attendee = $this->Attendees->patchEntity($attendee, $this->request->data);
+            if ($row = $this->Attendees->save($attendee)) {
+				$companyName = '';
+				$billing_entity = '';
+                $this->loadModel('InvoiceDetails');
+                $invoice = $this->InvoiceDetails->newEntity();
+                $data = $this->request->data;
+                $this->loadModel('Companies');
+				if(empty($this->request->data['companytext']))
+				{
+					$company = $this->Companies->find('all', [
+                            'conditions' => [
+                                'Companies.id' => $data['company_id']
+                    ]])->first();
+					$companyName = $company->name;
+							$company = $this->Companies->find('all', [
+                            'conditions' => [
+                                'Companies.id' => $data['company_id']
+                    ]])->first();
+					$billing_entity = $company->billing_entity;
+				}
+                else
+				{
+					$companyName = $this->request->data['companytext'];
+					$billing_entity = '';
+				}
+		
+                $invoice_data = [
+                    'date' => date('Y-m-d'),
+                    'meeting_id' => $latest_meeting->id,
+                    'meeting_title' => $latest_meeting->title,
+                    'meeting_date' => $latest_meeting->date,
+                    'attendees_name' => $data['user_name'],
+                    'company_name' => $companyName,
+                    'fee' => $data['fee'],
+                    'purchase_order' => $data['purchase_order'], //$data['purchase_order']
+                    'billing_entity' => $billing_entity,
+                    'invoice_number' => '000',
+                    'payment_method' => $data['pay_method'],
+                    'purchase_order' => $data['purchase_order'],
+                    'attendee_id' => $row->id,
+                    'user_id' => 0,
+                    'added_by' => $this->request->session()->read('Auth.User.id'),
+                ];
+                //   pr($invoice_data);
+                //   $data['user_id'] = $this->request->session()->read('Auth.User.id');
+                //   $data['company_id'] = $user->company_id;
+                //   $data['fee'] = $rsvp_settings->fee;
+                $invoice = $this->InvoiceDetails->patchEntity($invoice, $invoice_data);
+
+                //   pr($this->InvoiceDetails->save($invoice));
+                //   pr($invoice);
+                //   $dbo = $this->getDatasource();
+                //   $logs = $dbo->getLog();
+                //   pr($logs);
+                //   debug($this->Model->getDataSource()->getLog(false, false)); 
+                $inv_row = $this->InvoiceDetails->save($invoice);
+                // pr($invoice);die;
+                if ($inv_row) {
+                    //$inv_row = $this->InvoiceDetails->save($invoice)
+                    //   pr($in/v_row);
+                    $inv_row->invoice_number = (!empty($company->prefix) ? $company->prefix . '_' : '') . '000' . $inv_row->id;
+                    $this->InvoiceDetails->save($inv_row);
+                }
+                $this->Flash->success(__('The attendee has been saved.'));
+
+                return $this->redirect(['action' => 'add']);
+            }
+            // pr($attendee);
+            $this->Flash->error(__('The attendee could not be saved. Please, try again.'));
+        }
+        // $users = $this->Attendees->Users->find('list', ['limit' => 200]);
+        $companies = $this->Attendees->Companies->find('list', ['order' => ['name' => 'ASC']]);
+        // $meetings = $this->Attendees->Meetings->find('list', ['limit' => 200]);
+
+
+        $this->set(compact('attendee', 'users', 'companies', 'meetings'));
+        $this->set('_serialize', ['attendee']);
+    }
+
+    /**
+     * Edit method
+     *
+     * @param string|null $id Attendee id.
+     * @return \Cake\Network\Response|null Redirects on successful edit, renders view otherwise.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function edit($id = null) {
+        $attendee = $this->Attendees->get($id, [
+            'contain' => []
+        ]);
+
+        //$this->loadModel('InvoiceDetails');
+
+
+        if ($this->request->is(['patch', 'post', 'put'])) {
+
+            $attendee = $this->Attendees->patchEntity($attendee, $this->request->data);
+            //pr($this->Attendees->save($attendee));die;
+            if ($this->Attendees->save($attendee)) {
+                //update Invoice Amount in invoice as well
+                $this->loadModel('InvoiceDetails');
+                $company_name = $this->request->data['companytext'];
+                $purchase_order = $this->request->data['purchase_order'];
+                if ($this->request->data['type'] == 'member') {
+                    $this->loadModel('Companies');
+                    $company = $this->Companies->find('all', [
+                                'conditions' => [
+                                    'Companies.id' => $this->request->data['company_id']
+                        ]])->first();
+                    $company_name = $company->name;
+                }
+
+                $query = $this->InvoiceDetails->query();
+                $query->update()
+                        ->set(['fee' => $this->request->data['fee'], 'company_name' => $company_name, 'purchase_order' => $purchase_order])
+                        ->where(['attendee_id' => $id])
+                        ->execute();
+                $this->Flash->success(__('The attendee has been saved.'));
+
+                return $this->redirect(['action' => 'edit/' . $id]);
+            }
+            $this->Flash->error(__('The attendee could not be saved. Please, try again.'));
+        }
+        // $users = $this->Attendees->Users->find('list', ['limit' => 200]);
+        $companies = $this->Attendees->Companies->find('list', ['order' => ['name' => 'ASC']]);
+        $meetings = $this->Attendees->Meetings->find('list', ['order' => ['date' => 'DESC']]);
+
+        $this->loadModel('InvoiceDetails');
+        $invoice = $this->InvoiceDetails->query();
+        $invoice->select('purchase_order')
+                ->where(['attendee_id' => $id])
+                ->execute();
+
+//       foreach($invoice as $inv){
+//        pr($inv['purchase_order']);die;
+//       }
+        $this->set(compact('attendee', 'companies', 'meetings', 'invoice'));
+        $this->set('_serialize', ['attendee']);
+    }
+
+    /**
+     * Delete method
+     *
+     * @param string|null $id Attendee id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function delete($id = null) {
+        $this->autoRender = false;
+        $this->request->allowMethod(['post', 'delete']);
+        $item = $this->Attendees->get($id);
+        if (!$item) {
+            echo json_encode(['status' => false, 'message' => 'Referred Attendee Not Found!']);
+        }
+
+        if ($this->Attendees->delete($item)) {
+            // $this->Flash->success(__('The ad has been deleted.'));
+            $this->loadModel('InvoiceDetails');
+            $query = $this->InvoiceDetails->query();
+            $query->delete()
+                    ->where(['attendee_id' => $id])
+                    ->execute();
+            echo json_encode(['status' => true, 'message' => 'The Attendees and the Invoices has been deleted.']);
+        } else {
+            // $this->Flash->error(__('The ad could not be deleted. Please, try again.'));
+            echo json_encode(['status' => false, 'message' => 'An error Occured. Try again latter!']);
+        }
+        exit(0);
+        // return $this->redirect(['action' => 'index']);
+    }
+	
+
+
+    public function meetingsHistory() {
+
+        // $meetings = $this->Meetings->find()
+        // // ->where(['Orders.invoice_no' => $trackingId])
+        // ->contain(['Attendees' => function ($q) {
+        // return $q->where(['Attendees.user_id' => $this->request->session()->read('Auth.User.id')]);
+        // }
+        // ]);
+        //  pr($meetings); die;
+        $this->paginate = [
+            'contain' => ['Users', 'Companies', 'Meetings'],
+            // 'contain' => ['Attendees', 'Attendees', 'PresentationFiles']
+            // 'contain' => [
+            //         'Attendees' => function (\Cake\ORM\Query $query) {
+            //                 return $query->select(['Attendees.contactno', 'Attendees.user_id','Attendees.meeting_id'])
+            //                 ->where(['Attendees.user_id' => $this->request->session()->read('Auth.User.id')]);
+            //             }
+            //     ],
+            // 'contain' => [
+            //     'Attendees' => [
+            //         // 'fields' => ['Attendees.id', 'Attendees.user_id', 'Attendees.user_name', 'Attendees.attended','Attendees.meeting_id']],
+            //         // 'contain' => array(
+            //         //     'Contact'=>array("conditions"=>array("is_primary"=>1)),
+            //         //     'Address'=>array("conditions"=>array("is_primary"=>"yes"))
+            //         // ),
+            //         'conditions' => [
+            //             'Attendees.user_id' => $this->request->session()->read('Auth.User.id')
+            //         ]
+            //     ]
+            // ],
+            // 'joins' => [
+            //     //[
+            //         'alias' => 'Attendees',
+            //         'table' => 'attendees',
+            //         'type' => 'INNER',
+            //         'conditions' => 'Attendees.meeting_id = Meetings.id'
+            //         // 'conditions' => [
+            //         //     'Attendees.meeting_id' => 'Meetings.id'
+            //         // ]
+            //     //]
+            // ],
+            'conditions' => [
+                'Attendees.user_id' => $this->request->session()->read('Auth.User.id')
+            ]
+                // 'order' => [
+                //     'Meetings.date' => 'desc'
+                // ]
+        ];
+        $attendees = $this->paginate($this->Attendees);
+        //    pr($meetings); die;
+        //        $this->Meetings->get($id, [
+        //            'contain' => ['Attendees', 'Attendees', 'PresentationFiles']
+        //        ]);
+        // $query = $this->Attendees->find('all')->where(['user_id' => $this->request->session()->read('Auth.User.id')]);
+        // $invoices = $this->paginate($query);
+        $this->loadModel('Attendees');
+
+        $invoices = $this->Attendees->find()->where([
+                    'user_id' => $this->request->session()->read('Auth.User.id')
+                ])->all();
+        // $AttendeesModel = new Attendees();
+        // $invoices = $AttendeesModel->find('all');
+        // return $projects;
+        // $invoices = $this->paginate($AttendeesTable->find());
+        // ->where([
+        //         'user_id' => $this->request->session()->read('Auth.User.id')
+        //         ])
+
+        pr($invoices);
+        die;
+        $this->set('invoices', $invoices);
+        $this->set('attendees', $attendees);
+        $this->set('_serialize', ['attendees']);
+    }
+
+    public function meetingAttended($id = 0, $status = '') {
+        $this->autoRender = false;
+        $this->request->allowMethod(['get']);
+        if ($id <= 0 || ($status != 'y' && $status != 'n')) {
+            echo json_encode(['status' => false, 'message' => 'Invalid Options sent']);
+            exit(0);
+        }
+        $item = $this->Attendees->get($id);
+        $item = $this->Attendees->patchEntity($item, ['attended' => $status]);
+        if ($this->Attendees->save($item)) {
+            // $this->Flash->success(__('The ad has been deleted.'));
+            $this->response->body(json_encode(['status' => true, 'message' => 'The Attended Status has been updated.']));
+            //echo json_encode(['status'=>true,'message'=>'The Attended Status has been updated.']);
+        } else {
+            // $this->Flash->error(__('The ad could not be deleted. Please, try again.'));
+            $this->response->body(json_encode(['status' => false, 'message' => 'An error Occured. Try again latter!']));
+            // echo json_encode(['status'=>false,'message'=>'An error Occured. Try again latter!']);
+        }
+
+        // return $this->redirect(['action' => 'index']);
+    }
+
+    public function getBadgeCom($meeting_id, $type = 'full') {
+
+        if ($type == "Speaker") {
+
+
+            $attendees = $this->Attendees->find('all', [
+                        'contain' => ['Meetings'],
+                        'conditions' => [
+                            // 'Attendees.status' =>'A',
+                            'Attendees.meeting_id' => $meeting_id,
+                            'Attendees.attendee_status' => "Speaker",
+                        ],
+                        'join' => [
+                            'alias' => 'Companies',
+                            'table' => 'companies',
+                            'type' => 'LEFT',
+                            'conditions' => 'Companies.id = Attendees.company_id'
+                        ],
+                        'order' => [
+                            'Attendees.attendee_status' => 'asc',
+                            'Attendees.user_name' => 'asc',
+                        ]
+                    ])->select(['Attendees.id', 'Attendees.type', 'Attendees.user_name', 'Attendees.last_name', 'Companies.name', 'Attendees.email', 'Attendees.attendee_status', 'Attendees.contactno', 'Attendees.pay_method', 'Attendees.comments', 'Companies.mem_type', 'Meetings.title', 'Meetings.date', 'Attendees.companytext']);
+
+
+            $attendees = $attendees->all();
+
+            // pr($attendees);die;
+            $attendees_first = $attendees->first();
+            $this->set('attendees', $attendees);
+            $this->set('attendees_first', $attendees_first);
+        } elseif ($type == "Committee") {
+
+
+            $attendees = $this->Attendees->find('all', [
+                        'contain' => ['Meetings'],
+                        'conditions' => [
+                            // 'Attendees.status' =>'A',
+                            'Attendees.meeting_id' => $meeting_id,
+                            'Attendees.attendee_status' => "Committee",
+                        ],
+                        'join' => [
+                            'alias' => 'Companies',
+                            'table' => 'companies',
+                            'type' => 'LEFT',
+                            'conditions' => 'Companies.id = Attendees.company_id'
+                        ],
+                        'order' => [
+                            'Attendees.attendee_status' => 'asc',
+                            'Attendees.user_name' => 'asc',
+                        ]
+                    ])->select(['Attendees.id', 'Attendees.type', 'Attendees.user_name', 'Attendees.last_name', 'Companies.name', 'Attendees.email', 'Attendees.attendee_status', 'Attendees.contactno', 'Attendees.pay_method', 'Attendees.comments', 'Companies.mem_type', 'Meetings.title', 'Meetings.date', 'Attendees.companytext']);
+
+
+            $attendees = $attendees->all();
+
+            // pr($attendees);die;
+            $attendees_first = $attendees->first();
+            $this->set('attendees', $attendees);
+            $this->set('attendees_first', $attendees_first);
+        } else {
+
+
+
+            if ($type == 'associate') {
+                $type = 'Associated';
+            }
+            $attendees = $this->Attendees->find('all', [
+                        'contain' => ['Meetings'],
+                        'conditions' => [
+                            // 'Attendees.status' =>'A',
+                            'Attendees.meeting_id' => $meeting_id,
+                            'Companies.mem_type' => $type,
+                        ],
+                        'join' => [
+                            'alias' => 'Companies',
+                            'table' => 'companies',
+                            'type' => 'LEFT',
+                            'conditions' => 'Companies.id = Attendees.company_id'
+                        ],
+                        'order' => [
+                            'Attendees.attendee_status' => 'asc',
+                            'Attendees.user_name' => 'asc',
+                        ]
+                    ])->select(['Attendees.id', 'Attendees.type', 'Attendees.user_name', 'Attendees.last_name', 'Companies.name', 'Attendees.email', 'Attendees.attendee_status', 'Attendees.contactno', 'Attendees.pay_method', 'Attendees.comments', 'Companies.mem_type', 'Meetings.title', 'Meetings.date', 'Attendees.companytext']);
+            $attendees = $attendees->all();
+            $attendees_first = $attendees->first();
+            $this->set('attendees', $attendees);
+            $this->set('attendees_first', $attendees_first);
+        }
+    }
+
+    public function getBadge($meeting_id, $type = 'full') {
+
+        if ($type == "Speaker") {
+
+
+            $attendees = $this->Attendees->find('all', [
+                        'contain' => ['Meetings'],
+                        'conditions' => [
+                            // 'Attendees.status' =>'A',
+                            'Attendees.meeting_id' => $meeting_id,
+                            'Attendees.attendee_status' => "Speaker",
+                        ],
+                        'join' => [
+                            'alias' => 'Companies',
+                            'table' => 'companies',
+                            'type' => 'LEFT',
+                            'conditions' => 'Companies.id = Attendees.company_id'
+                        ],
+                        'order' => [
+                            'Attendees.attendee_status' => 'asc',
+                            'Attendees.last_name' => 'asc',
+                        ]
+                    ])->select(['Attendees.id', 'Attendees.type', 'Attendees.user_name', 'Attendees.last_name', 'Companies.name', 'Attendees.email', 'Attendees.attendee_status', 'Attendees.contactno', 'Attendees.pay_method', 'Attendees.comments', 'Companies.mem_type', 'Meetings.title', 'Meetings.date', 'Attendees.companytext']);
+
+
+            $attendees = $attendees->all();
+
+            // pr($attendees);die;
+            $attendees_first = $attendees->first();
+            $this->set('attendees', $attendees);
+            $this->set('attendees_first', $attendees_first);
+        } elseif ($type == "Committee") {
+
+
+            $attendees = $this->Attendees->find('all', [
+                        'contain' => ['Meetings'],
+                        'conditions' => [
+                            // 'Attendees.status' =>'A',
+                            'Attendees.meeting_id' => $meeting_id,
+                            'Attendees.attendee_status' => "Committee",
+                        ],
+                        'join' => [
+                            'alias' => 'Companies',
+                            'table' => 'companies',
+                            'type' => 'LEFT',
+                            'conditions' => 'Companies.id = Attendees.company_id'
+                        ],
+                        'order' => [
+                            'Attendees.attendee_status' => 'asc',
+                            'Attendees.last_name' => 'asc',
+                        ]
+                    ])->select(['Attendees.id', 'Attendees.type', 'Attendees.user_name', 'Attendees.last_name', 'Companies.name', 'Attendees.email', 'Attendees.attendee_status', 'Attendees.contactno', 'Attendees.pay_method', 'Attendees.comments', 'Companies.mem_type', 'Meetings.title', 'Meetings.date', 'Attendees.companytext']);
+
+
+            $attendees = $attendees->all();
+
+            // pr($attendees);die;
+            $attendees_first = $attendees->first();
+            $this->set('attendees', $attendees);
+            $this->set('attendees_first', $attendees_first);
+        } else {
+
+
+
+            if ($type == 'associate') {
+                $type = 'Associated';
+            }
+            $attendees = $this->Attendees->find('all', [
+                        'contain' => ['Meetings'],
+                        'conditions' => [
+                            // 'Attendees.status' =>'A',
+                            'Attendees.meeting_id' => $meeting_id,
+                            'Companies.mem_type' => $type,
+                        ],
+                        'join' => [
+                            'alias' => 'Companies',
+                            'table' => 'companies',
+                            'type' => 'LEFT',
+                            'conditions' => 'Companies.id = Attendees.company_id'
+                        ],
+                        'order' => [
+                            'Attendees.attendee_status' => 'asc',
+                            'Attendees.last_name' => 'asc',
+                        ]
+                    ])->select(['Attendees.id', 'Attendees.type', 'Attendees.user_name', 'Attendees.last_name', 'Companies.name', 'Attendees.email', 'Attendees.attendee_status', 'Attendees.contactno', 'Attendees.pay_method', 'Attendees.comments', 'Companies.mem_type', 'Meetings.title', 'Meetings.date', 'Attendees.companytext']);
+            $attendees = $attendees->all();
+            $attendees_first = $attendees->first();
+            $this->set('attendees', $attendees);
+            $this->set('attendees_first', $attendees_first);
+        }
+    }
+
+    public function exportAttendees($meeting_id, $type = 'excel') {
+        // $this->autoRender = false;
+		$pdf_booking_process = "";
+		$pdf_booking_process_name = "";
+		if($type == 'pdf')
+		{
+			$pdf_booking_process = '1';
+			$pdf_booking_process_name = 'Attendees.booking_process';
+		}
+		else
+		{
+			$pdf_booking_process = '1';
+			$pdf_booking_process_name = '1';
+		}
+        $attendees = $this->Attendees->find('all', [
+                    'contain' => ['Meetings'],
+                    'conditions' => [
+                        // 'Attendees.status' =>'A',
+                        'Attendees.meeting_id' => $meeting_id,
+                       // 'Attendees.booking_process'=>'1'
+							$pdf_booking_process_name => $pdf_booking_process
+                    ],
+                    'join' => [
+                        'alias' => 'Companies',
+                        'table' => 'companies',
+                        'type' => 'LEFT',
+                        'conditions' => 'Companies.id = Attendees.company_id'
+                    ],
+                    'order' => [
+                        'Attendees.last_name' => 'asc',
+                    ]
+                ])->select(['Attendees.id', 'Attendees.type', 'Attendees.booking_process','Attendees.user_name', 'Attendees.last_name', 'Companies.name', 'Attendees.email', 'Attendees.contactno', 'Attendees.pay_method', 'Attendees.comments', 'Companies.mem_type', 'Meetings.title', 'Meetings.date', 'Attendees.companytext']);
+        // $attendees_first = $attendees->first();
+        $attendees = $attendees->all();
+        $attendees_first = $attendees->first();
+        // pr($attendees_first);
+        // die;
+        // echo $attendees_first->meeting->title; die;
+        if ($type == 'excel') {
+            $filename = 'Attendees-' . date('Y-m-d-H-i-s') . '.xls';
+            $now = gmdate("D, d M Y H:i:s");
+            header("Expires: Tue, 03 Jul 2001 06:00:00 GMT");
+            header("Cache-Control: max-age=0, no-cache, must-revalidate, proxy-revalidate");
+            header("Last-Modified: {$now} GMT");
+
+            // force download  
+            header("Content-Type: application/x-msexcel; charset=utf-8");
+            // header("Content-Type: application/force-download");
+            // header("Content-Type: application/octet-stream");
+            // header("Content-Type: application/download");
+            // disposition / encoding on response body
+            header("Content-Disposition: attachment;filename=$filename");
+            header("Content-Transfer-Encoding: binary");
+
+            if (count($attendees) == 0) {
+                return null;
+            }
+            ob_start();
+            $df = fopen("php://output", 'w');
+
+            // pr($users);
+            // fputcsv($df, array('name','first_name','last_name','email','tel','address','company','job_title','billing_entity','created','fax'));
+            fputcsv($df, array(''));
+            fputcsv($df, array('Attendees -', $attendees_first->meeting->title), "\t");
+            fputcsv($df, array(''), "\t");
+            fputcsv($df, array('First Name', 'Last Name', 'Company', 'Email', 'Contact No', 'Pay Method', 'Comments', 'Member Type', 'Delegate list'), "\t");
+            foreach ($attendees as $row) {
+                // pr($row);die;
+				$booking_process = '';
+                if ($row->type === 'nonmember') {
+                    $company = $row->companytext;
+                } else {
+                    $company = $row->Companies['name'];
+                }
+				if($row->booking_process == '1')
+				{
+					$booking_process = 'yes';
+				}
+				else
+				{
+					$booking_process = 'No';
+				}
+				
+                fputcsv($df, array(
+                    $row->user_name,
+                    $row->last_name,
+                    $company,
+                    $row->email,
+                    $row->contactno,
+                    $row->pay_method,
+                    $row->comments,
+                    $row->Companies['mem_type'],
+					$booking_process,
+                        ), "\t");
+            }
+            fclose($df);
+            die();
+        }
+        $this->set('attendees', $attendees);
+        $this->set('attendees_first', $attendees_first);
+    }
+
+}
