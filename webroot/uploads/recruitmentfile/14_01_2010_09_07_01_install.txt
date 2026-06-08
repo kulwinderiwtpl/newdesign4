@@ -1,0 +1,35 @@
+* * * INSTALLATION * * *
+
+1. Upload the gallery directory to your server using an FTP program (like WS_FTP, CuteFTP or Fetch).
+2. Set the permission to Read, Write, Executable using your FTP client. Or, you can use the CHMOD 777 command in Linux like
+    
+    CHMOD 777 photos
+    CHMOD 777 config.php
+
+
+3. Run the Installation Wizard by typing 
+
+http://www.example.com/gallery/install/index.php 
+
+in your browser window.
+
+
+That is it!
+
+Your gallery is now available at http://www.your-domain.com/gallery/index.php
+Admin area available at http://www.your-domain.com/gallery/admin/index.php
+
+
+
+
+
+
+
+
+* * * ADVANCED INTEGRATION * * *
+You can easily to integrate our Gallery Script into your existing website.
+
+Just add one line of code below to a PHP page in place where you want the Gallery was shown
+
+include "gallery/index.php";
+

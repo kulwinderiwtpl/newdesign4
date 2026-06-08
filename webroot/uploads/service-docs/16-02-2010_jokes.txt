@@ -1,0 +1,2 @@
+if($num_rows1<=0){return;}
+$num_rows1=$mycms->sql_numrows($res_cat1);

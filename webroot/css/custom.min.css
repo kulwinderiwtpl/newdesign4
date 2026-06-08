@@ -1,0 +1,42 @@
+.table-scrollable thead {
+    background-color: #2ab4c0;
+    color: #ffffff;
+}
+.users.icon-btn {
+    width: 10%;
+    height: 100px;
+    margin: 0 0 15px 15px;
+    min-width: 150px;
+}
+.users.icon-btn img {
+    margin-bottom: 10px;
+    height: 60%;
+    width: 50%;
+}
+.btn-right {
+    float: right;
+}
+.btn.green:not(.btn-outline) {
+    margin-bottom: 10px;
+}
+.tooltip{z-index:99999}
+
+.table-scrollable.dataTable-cont{border: none;}
+.dataTable {border: 1px solid #e7ecf1;}
+.paginate_button, span.ellipsis{position: relative;float: left; padding: 6px 12px;line-height: 1.42857; text-decoration: none; color: #337ab7;background-color: #fff; border: 1px solid #ddd; margin-left: 0px;}
+.paginate_button.current, .paginate_button.current:focus, .paginate_button.current:hover{
+    z-index: 3;
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #337ab7;
+    cursor: default;
+}
+.dataTables_info{margin: 0 0 15px 0;}
+.dataTables_filter input[type=search]{margin: 0 0 0 10px;}
+.datatable-form-actions {margin-top: 15px;}
+
+.input-group .form-control{z-index: 1;}
+#meeting-dropdown {
+    width: 400px;
+    margin-bottom: 10px;
+}

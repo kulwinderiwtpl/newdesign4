@@ -1,0 +1,290 @@
+Hello sir,
+  Today I have completed following jobs...
+
+
+project name:hcf
+
+login-details of end-user:
+login-url: http://www.healthclaimsforum.net/hide/members/
+login-id: MilanoSaha13 (for repuser)
+password: 123456
+
+login-id: MilonSahid27 (for general member)
+password: 123
+
+login-details of admin:
+login-url: http://www.healthclaimsforum.net/hide/newdesign1/
+login-id: admin
+password: 123
+
+1. changes in sidebar of the project hcf.
+2. modified following pages:
+   (a)For admin:
+   admins.php, admins_process.php, admin-my.php, admin-my.php,
+   admin-add-modal.php, companies.php, companies_process.php,
+   edit-company-modal, add-company-modal, subscriptions.php,
+   subscriptions_process.php, user-edit.php,user-edit.php,
+   member_process.php,recruitment.php,recruitment_process.php,
+   reps.php,reps_process.php, company-edit.php, newsletters.php,
+   newsletters_process.php,meetings.php, meetings_process.php,
+   documents.php, documents_process.php, newsletter-details.php,
+   next-meetings.php,reset-password-modal.php e.t.c with javascript
+   validation with css features.
+   (b)For end-user:
+   dashboard.php, dashboard_process.php, user-my.php, user-my_process.php,
+   dashboard-edit-modal.php, dashboard-email-modal.php, dashboard-edit-validation.js,
+   dashboard-email-validation.js, recruitment.php,recruitment_process.php,
+   member_process.php, newsletters.php,reset-password-modal.php,
+   newsletters_process.php,meetings.php, meetings_process.php,
+   documents.php, documents_process.php, newsletter-details.php,
+   next-meetings.php e.t.c with javascript validation with css
+3.Generate password in user-edit page is completed.
+4.Generate password in member-edit-modal page is completed.
+5.Generate password in reps-edit-modal page is completed.
+6.Generate password in member-add-modal page is completed.
+7.Existing email checking in member-add-modal page is completed.
+8.Existing email checking in member-edit-modal page is completed.
+9.Existing email checking in member-add-modal page is completed.
+10.Existing email checking in reps-edit-modal page is completed.
+11.Existing email checking in user-edit-modal page is completed.
+12.Existing email checking in user-details-modal page is completed.
+13.Existing email checking in user-my page in enduser-section is completed.
+14.design web-link page with valid css and javascript.
+15.made process page of weblink with valid codes.
+16.Innerhtml validation of weblink page(while add, edit) is completed.
+-------------------------------------------------------------------
+Resolved issues:----
+1.(working)Content of newsletters are not included in email
+2.(checking)Newsletters HTML formatting is lost.
+3. (working)Address field in usermenu has extra padding - perhaps this is caused
+by this field being a textarea while the add user menu uses a text
+field. Try to edit a user's address, get rid of the extra spacing at the
+beginning of the address and update. The spacing comes bacck. Please
+also change company edit/add address file to textarea for consistency.
+
+4.(done)Add password generator to all user add/edit menus
+
+5.(done) Dropdown menus for company filed should sort alphabetically
+
+6.(done) Add new member, company, admin: The default status should be pending
+
+7. (done) Fax number doesn't save leading 0. I chanaged the db field for
+this record type from int to char and it's fixed now. Please also do
+this on your dev server.
+
+8.(done)Add news Letter: Please add an extra option to the Email drop down
+list so that it first shows "None". This will insure emails are not sent
+accidentally.
+
+9.(working) Multiple selection functions like Lock/ulock is not applied to all
+records e.g. companies & members listing (not a high priority now)
+
+10.(done) When adding new document the submit button opens a new browser window.
+12.(done) When a new admin user is created, the subject of the email is wrong
+"Reset password"
+13. (checking)***Important*** The site throwos JS error in IE e.g. try the ajax
+search in IE.
+14.(done) ***Important*** Email validation for members update, user-my.php,
+does not check for existing email records in the db. Duplicate records
+are possible and users can even put an exising admin email.
+15.(checking)Admin > Companies > Subscriptions: Selecting a year should list ALL
+companies (with pagination) so that admins can see the status of
+subscriptions of all companies for a selected year. The default year
+should be set to the current year.
+Question: Would future years be added automatically to the dropdown list?
+
+This module needs a good rechecking.
+
+16.(done) End-user Interface - Helpful Info, and Claims Diploma don't show the
+listing
+17.(done) End-user Interface - Add News Archive to the Latest Newsletter (add
+another tab)
+18. (done)Missing feature (hooman didn't include in design): Links
+Add another option to the dropdown list in Admin > Helpful info document
+type "Web link"
+This document type will have two fields (Title and URL)
+
+The result will be added to another tab in the module (the same as
+useful info, etc with adit option)
+On the End-user interface these links will be listed in the Helpful info
+tab.
+
+19.(checking) **** Modification of Meetings Module *****
+
+
+a. Add another field under Location, "Location info". This will be the
+same as Location Map (text field taking URL) so that admins can add
+addtional location link.
+
+b. A meeting can have more than one presentation file. This means that
+when admins update the meeting later with presentation file, each file
+will be linked to the same meeting.
+Modification needed to the Meeting edit: When admins click on Editing a
+meeting, the table below the meeting details should show the listing of
+files associated with that meeting with the Delete option. This will
+replace the current listing of other meetings.
+
+It may be more sensible to move the upload file  to the file listing of
+Meeting > Edit
+
+-----------------------------------------------------
+For the end user, meeting archive should look like:
+-----------------------------------------------------
+http://www.healthclaimsforum.net/designs/members/meetings.php#
+
+20.(done) Please double-check the reset password function: does it send a
+proper random password with usable characters?
+
+21.(checking) Admin > View Manage Document: When adding new document the success
+message (m=1) stays on in the URL.(not very important, but it if it can
+befixed quickly would be good)
+
+22.(working) Admin - changing usernames later causes the problem with
+admin-my.php and user-my.php (please check).
+
+To reproduce the problem log in as adminuser:
+username: jcalder@rgare.com
+password: jennnie
+and go to My details
+
+23.(checking) File upload function. After a file is upload the submission of form
+still uploads the file. Try with files over 500K to see the effect- this
+make the ajax file upload look fake.
+
+---------------------------------------------
+Requests:
+---------------------------------------------
+1. (done) Password generator next to new password fields e.g. for
+Members > Add new Member
+
+2. (working)Documentation on how to edit email templates/functions
+
+3. (done)Admins > Documents: Documents with closing date set should
+automatically disapper from the end-users's menu listing after closing
+date + 1 day. For example recruitments with (not high priority)
+
+4. (checking)There may be a need to set the pagination number for some modules
+(nothing to worry about for now - this is for future)
+
+5. (checking)Usability problem with form validation and Ajax search: Can we use
+something like liveValidation.com so that users don't have to click off
+the fileds in order to see the OK message.
+
+6. (done)Resetting password on login page (forgot password) should generate
+and issue a new random password
+
+---------------------------------------------
+Next version updates/new features
+---------------------------------------------
+1- (checking)Out put the whole meeting section into a single PDF
+
+2- (done)Rep Members Dashboard > Show text "You are set as a rep member for
+CompanyName"
+
+3- (done)Add a tab to Rep Members menu (my details), next to subscriptions,
+"Your colleageus". This will list other members under the same company
+with rep members marked.
+
+4- (checking)Add booking module so that members can confirm their attendance and
+send in a form for a particular meeting.
+
+
+5- (checking)System Message - allow admins to created messages that will be
+displayed on end-user dashboard
+----------------------------------------------
+New design:
+----------------------------------------------
+1. Content of newsletters are not included in email
+2. Newsletters HTML formatting is lost.
+3. Address field in usermenu has extra padding - perhaps this is caused
+by this field being a textarea while the add user menu uses a text
+field. Try to edit a user's address, get rid of the extra spacing at the
+beginning of the address and update. The spacing comes bacck. Please
+also change company edit/add address file to textarea for consistency.
+
+4. (working)Add password generator to all user add/edit menus
+
+5. (done)Dropdown menus for company filed should sort alphabetically
+
+6. (done)Add new member, company, admin: The default status should be pending
+
+7. (done) Fax number doesn't save leading 0. I chanaged the db field for
+this record type from int to char and it's fixed now. Please also do
+this on your dev server.
+
+8. (done) Add news Letter: Please add an extra option to the Email drop down
+list so that it first shows "None". This will insure emails are not sent
+accidentally.
+
+9. (done) Multiple selection functions like Lock/ulock is not applied to all
+records e.g. companies & members listing (not a high priority now)
+
+10. (done) When adding new document the submit button opens a new browser window.
+12. (done) When a new admin user is created, the subject of the email is wrong
+"Reset password"
+13. (done) ***Important*** The site throwos JS error in IE e.g. try the ajax
+search in IE.
+14. (done) ***Important*** Email validation for members update, user-my.php,
+does not check for existing email records in the db. Duplicate records
+are possible and users can even put an exising admin email.
+15. (done) Admin > Companies > Subscriptions: Selecting a year should list ALL
+companies (with pagination) so that admins can see the status of
+subscriptions of all companies for a selected year.
+Question: Would future years be added automatically to the dropdown list?
+
+16. (done) End-usee Interface - Helpful Info, and Claims Diploma don't show the
+listing
+17. (done) End-user Interface - Add News Archive to the Latest Newsletter (add
+another tab)
+18. (working) Missing feature (hooman didn't include in design): Links
+Add another option to the dropdown list in Admin > Helpful info document
+type "Web link"
+This document type will have two fileds (Title and URL)
+
+The result will be added to another tab in the module (the same as
+useful info, etc with adit option)
+On the End-user interface these links will be listed in the Helpful info
+tab.
+
+19. (working)Customer mentioned the Next meeting needs redesign the same the old
+site so that multiple files can be added and grouped into a title with
+the same date. I'm working on the design...
+
+20. (done)Please double-check the reset password function: does it send a
+proper random password with usable characters?
+
+Requests:
+---------------------------------------------
+1. (done) Password generator next to new password fields e.g. for
+Members > Add new Member
+
+2. (working)Documentation on how to edit email templates/functions
+
+3. (done)Admins > Documents: Documents with closing date set should
+automatically disapper from the end-users's menu listing after closing
+date + 1 day. For example recruitments with (not high priority)
+
+4. (done)There may be a need to set the pagination number for some modules
+(nothing to worry about for now - this is for future)
+
+5. (checking)Usability problem with form validation and Ajax search: Can we use
+something like liveValidation.com so that users don't have to click off
+the fileds in order to see the OK message.
+
+6. (done)Resetting password on login page (forgot password) should generate
+and issue a new random password
+
+---------------------------------------------
+Next version updates/new features
+---------------------------------------------
+1- (working)Out put the whole meeting section into a single PDF
+
+2- (done)Rep Members Dashboard > Show text "You are set as a rep member for
+CompanyName"
+
+3- (done)Add a tab to Rep Members menu (my details), next to subscriptions,
+"Your colleageus". This will list other members under the same company
+with rep members marked.
+
+4- (checking)Add booking module so that members can confirm their attendance and
+send in a form for a particular meeting.

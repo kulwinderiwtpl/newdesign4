@@ -1,0 +1,10 @@
+/*general style*/
+body 		{font-size:mostUsedFontSize; font-family:MostUsedFontFamily;... }
+body,form 	{margin:0px; padding:0px;}
+a		{color:MostUsedColorForLinks...}
+a:hover		{color:MostUsedColorForLinks...}
+
+/*special elements style*/
+.baseList		{margin:0px; padding:0px;list-tyle:none;}
+
+/* dedicated css*/
