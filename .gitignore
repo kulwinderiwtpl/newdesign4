@@ -68,3 +68,7 @@ test.php
 /app/Config/database.php
 /vendors/
 /webroot/cache/*
+
+# CakePHP DebugKit
+tmp/debug_kit.sqlite
+*.sqlite
