@@ -1,26 +1,70 @@
+# =========================
 # CakePHP 3
+# =========================
 
-/vendor/*
+/vendor/
 /config/app.php
 
+# Cache
 /tmp/cache/models/*
 !/tmp/cache/models/empty
+
 /tmp/cache/persistent/*
 !/tmp/cache/persistent/empty
+
 /tmp/cache/views/*
 !/tmp/cache/views/empty
+
+# Sessions
 /tmp/sessions/*
 !/tmp/sessions/empty
+
+# Test output
 /tmp/tests/*
 !/tmp/tests/empty
 
+# Logs
 /logs/*
 !/logs/empty
 
-# CakePHP 2
+# =========================
+# Local Development Files
+# =========================
+
+# Composer
+composer.phar
+
+# SQL Dumps
+*.sql
+
+# Error Logs
+error_log
+*.log
+
+# IDE Files
+/nbproject/
+.idea/
+.vscode/
+
+# Linux / Mac
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Development/Test Files
+phpinfo.php
+test.php
+
+# =========================
+# CakePHP 2 (if applicable)
+# =========================
 
 /app/tmp/*
 /app/Config/core.php
 /app/Config/database.php
-/vendors/*
-/webroot/*
+/vendors/
+/webroot/cache/*
